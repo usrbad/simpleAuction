@@ -15,9 +15,22 @@ contract Auction {
     uint public highestBid;
     uint public endTime;
     mapping(address=>uint) public buyers;
+    bool private locked;
 
     event Claimed(address _to, uint _amount);
     event NewBid(address _bidder, uint _bid);
+
+    modifier noReentrancy() {
+        require(!locked, "reentrancy found");
+        locked = true;
+        _;
+        locked = false;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, "you aren't an owner");
+        _;
+    }
 
     // setting duration and starting price in the constructor
     constructor(uint _duration, uint _startingPrice) {
@@ -29,7 +42,7 @@ contract Auction {
     // function describes member's bids
     function bid() external payable {
         require(block.timestamp < endTime, "auiction closed");
-        require(msg.value > highestBid, "your bid is lower or equal than current bid");
+        require(msg.value > highestBid, "low bid");
         highestBid = msg.value;
         buyers[msg.sender] += msg.value;
         winner = msg.sender;
@@ -38,7 +51,7 @@ contract Auction {
     }
 
     // function describes member's claims
-    function claim() public {
+    function claim() public noReentrancy {
         require(buyers[msg.sender] != 0, "you aren't buyer");
         if(msg.sender == winner) {
             require((buyers[msg.sender] - highestBid) > 0, "nothing to claim");
@@ -53,8 +66,7 @@ contract Auction {
     }
 
     // function describes withdrawal funds by creator after the end of auction
-    function withdrawAll() external {
-        require(msg.sender == owner, "you aren't an owner to widthdraw");
+    function withdrawAll() external onlyOwner {
         require(block.timestamp > endTime, "auiction is still ongoing");
         require(highestBid > 0, "no one set a bid");
         payable(owner).transfer(highestBid);
