@@ -56,7 +56,7 @@ describe("Auction", function () {
     it("next bid should be higher than previous bid", async function () {
         const bid1 = 5
         const bid2 = 1
-        const revertMsg = "your bid is lower or equal than current bid"
+        const revertMsg = "low bid"
         await expect(() => auction.connect(acc2).bid({value: bid1})).to.be.changeEtherBalances([acc2, auction],[-bid1, bid1])
         await expect(auction.connect(acc3).bid({value : bid2})).to.be.revertedWith(revertMsg)
     })
@@ -125,21 +125,19 @@ describe("Auction", function () {
         const revertMsg = "auiction closed"
         const bid = await auction.connect(acc2).bid({value: amount})
         
-        this.timeout(duration * 10000)
-        await delay(duration * 1000)
+        await network.provider.send("evm_increaseTime", [6000])
 
         await expect(auction.connect(acc3).bid({value : amount2})).to.be.revertedWith(revertMsg)
     })
 
     it("should not be able to withdraw if no owner", async function () {
         const amount = 5
-        const revertMsg = "you aren't an owner to widthdraw"
+        const revertMsg = "you aren't an owner"
 
         // Bidding
         await expect(() => auction.connect(acc2).bid({value: amount})).to.be.changeEtherBalances([acc2, auction],[-amount, amount])
 
-        this.timeout(duration * 10000)
-        await delay(duration * 1000)
+        await network.provider.send("evm_increaseTime", [5000])
         
         // Withdrawing
         await expect(auction.connect(acc3).withdrawAll()).to.be.revertedWith(revertMsg)
@@ -147,8 +145,8 @@ describe("Auction", function () {
 
     it("owner should not be able to withdraw funds if no buyers", async function () {
         const revertMsg = "no one set a bid"
-        this.timeout(duration * 10000)
-        await delay(duration * 1300)
+        //this.timeout(duration * 10000)
+        await network.provider.send("evm_increaseTime", [5000])
 
         await expect(auction.connect(owner).withdrawAll()).to.be.revertedWith(revertMsg)
     })
@@ -159,8 +157,7 @@ describe("Auction", function () {
         // Bidding
         await expect(() => auction.connect(acc2).bid({value: amount})).to.be.changeEtherBalances([acc2, auction],[-amount, amount])
 
-        this.timeout(duration * 10000)
-        await delay(duration * 1000)
+        await network.provider.send("evm_increaseTime", [5000])
         
         // Withdrawing
         await expect(() => auction.connect(owner).withdrawAll()).to.be.changeEtherBalances([auction, owner], [-amount, amount])
@@ -173,8 +170,7 @@ describe("Auction", function () {
         await expect(() => auction.connect(acc3).bid({value: amount2})).to.be.changeEtherBalances([acc3, auction],[-amount2, amount2])
         expect(await auction.winner()).to.eq(acc3.address)
 
-        this.timeout(duration * 10000)
-        await delay(duration * 1500)
+        await network.provider.send("evm_increaseTime", [5000])
 
         expect(await auction.winner()).to.eq(acc3.address)
     })
