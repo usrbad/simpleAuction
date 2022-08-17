@@ -130,7 +130,7 @@ describe("Auction", function () {
         await expect(auction.connect(acc3).bid({value : amount2})).to.be.revertedWith(revertMsg)
     })
 
-    it("should not be able to withdraw if no owner", async function () {
+    it("should not be able to withdraw if not an owner", async function () {
         const amount = 5
         const revertMsg = "you aren't an owner"
 
@@ -161,6 +161,25 @@ describe("Auction", function () {
         
         // Withdrawing
         await expect(() => auction.connect(owner).withdrawAll()).to.be.changeEtherBalances([auction, owner], [-amount, amount])
+    })
+
+    it("owner should be able to withdraw only once", async function () {
+        const amount = 5
+        const amount2 = 6
+        const amount3 = 7
+        revertMsg = "you've already withdrew"
+
+        // Bidding
+        await expect(() => auction.connect(acc2).bid({value: amount})).to.be.changeEtherBalances([acc2, auction],[-amount, amount])
+        await expect(() => auction.connect(acc3).bid({value: amount2})).to.be.changeEtherBalances([acc3, auction],[-amount2, amount2])
+        await expect(() => auction.connect(acc2).bid({value: amount3})).to.be.changeEtherBalances([acc2, auction],[-amount3, amount3])
+
+        await network.provider.send("evm_increaseTime", [5000])
+        
+        // Withdrawing
+        await expect(() => auction.connect(owner).withdrawAll()).to.be.changeEtherBalances([auction, owner], [-amount3, amount3])
+
+        await expect(auction.connect(owner).withdrawAll()).to.be.revertedWith(revertMsg)
     })
 
     it("should be the same winner after last bid and end of auction", async function () {

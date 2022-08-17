@@ -16,6 +16,7 @@ contract Auction {
     uint public endTime;
     mapping(address=>uint) public buyers;
     bool private locked;
+    bool private isWithdrew = false;
 
     event Claimed(address _to, uint _amount);
     event NewBid(address _bidder, uint _bid);
@@ -25,6 +26,12 @@ contract Auction {
         locked = true;
         _;
         locked = false;
+    }
+
+    modifier withdrawOnce() {
+        require(isWithdrew == false, "you've already withdrew");
+        isWithdrew = true;
+        _;
     }
 
     modifier onlyOwner() {
@@ -66,7 +73,7 @@ contract Auction {
     }
 
     // function describes withdrawal funds by creator after the end of auction
-    function withdrawAll() external onlyOwner {
+    function withdrawAll() external onlyOwner withdrawOnce {
         require(block.timestamp > endTime, "auiction is still ongoing");
         require(highestBid > 0, "no one set a bid");
         payable(owner).transfer(highestBid);
