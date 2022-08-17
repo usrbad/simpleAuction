@@ -28,12 +28,6 @@ contract Auction {
         locked = false;
     }
 
-    modifier withdrawOnce() {
-        require(isWithdrew == false, "you've already withdrew");
-        isWithdrew = true;
-        _;
-    }
-
     modifier onlyOwner() {
         require(msg.sender == owner, "you aren't an owner");
         _;
@@ -73,9 +67,11 @@ contract Auction {
     }
 
     // function describes withdrawal funds by creator after the end of auction
-    function withdrawAll() external onlyOwner withdrawOnce {
+    function withdrawAll() external onlyOwner {
         require(block.timestamp > endTime, "auiction is still ongoing");
         require(highestBid > 0, "no one set a bid");
+        require(!isWithdrew, "you've already withdrew");
+        isWithdrew = true;
         payable(owner).transfer(highestBid);
     }
 
