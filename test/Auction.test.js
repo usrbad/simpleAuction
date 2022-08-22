@@ -125,7 +125,7 @@ describe("Auction", function () {
         const revertMsg = "auiction closed"
         const bid = await auction.connect(acc2).bid({value: amount})
         
-        await network.provider.send("evm_increaseTime", [6000])
+        await network.provider.send("evm_increaseTime", [10])
 
         await expect(auction.connect(acc3).bid({value : amount2})).to.be.revertedWith(revertMsg)
     })
@@ -137,7 +137,7 @@ describe("Auction", function () {
         // Bidding
         await expect(() => auction.connect(acc2).bid({value: amount})).to.be.changeEtherBalances([acc2, auction],[-amount, amount])
 
-        await network.provider.send("evm_increaseTime", [5000])
+        await network.provider.send("evm_increaseTime", [10])
         
         // Withdrawing
         await expect(auction.connect(acc3).withdrawAll()).to.be.revertedWith(revertMsg)
@@ -146,7 +146,7 @@ describe("Auction", function () {
     it("owner should not be able to withdraw funds if no buyers", async function () {
         const revertMsg = "no one set a bid"
         //this.timeout(duration * 10000)
-        await network.provider.send("evm_increaseTime", [5000])
+        await network.provider.send("evm_increaseTime", [10])
 
         await expect(auction.connect(owner).withdrawAll()).to.be.revertedWith(revertMsg)
     })
@@ -157,7 +157,7 @@ describe("Auction", function () {
         // Bidding
         await expect(() => auction.connect(acc2).bid({value: amount})).to.be.changeEtherBalances([acc2, auction],[-amount, amount])
 
-        await network.provider.send("evm_increaseTime", [5000])
+        await network.provider.send("evm_increaseTime", [10])
         
         // Withdrawing
         await expect(() => auction.connect(owner).withdrawAll()).to.be.changeEtherBalances([auction, owner], [-amount, amount])
@@ -174,7 +174,7 @@ describe("Auction", function () {
         await expect(() => auction.connect(acc3).bid({value: amount2})).to.be.changeEtherBalances([acc3, auction],[-amount2, amount2])
         await expect(() => auction.connect(acc2).bid({value: amount3})).to.be.changeEtherBalances([acc2, auction],[-amount3, amount3])
 
-        await network.provider.send("evm_increaseTime", [5000])
+        await network.provider.send("evm_increaseTime", [10])
         
         // Withdrawing
         await expect(() => auction.connect(owner).withdrawAll()).to.be.changeEtherBalances([auction, owner], [-amount3, amount3])
@@ -189,7 +189,7 @@ describe("Auction", function () {
         await expect(() => auction.connect(acc3).bid({value: amount2})).to.be.changeEtherBalances([acc3, auction],[-amount2, amount2])
         expect(await auction.winner()).to.eq(acc3.address)
 
-        await network.provider.send("evm_increaseTime", [5000])
+        await network.provider.send("evm_increaseTime", [10])
 
         expect(await auction.winner()).to.eq(acc3.address)
     })
